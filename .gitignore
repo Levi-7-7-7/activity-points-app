@@ -1,0 +1,67 @@
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+dist/
+.env
+.env.local
+.env.*.local
+
+# Logs
+logs
+*.log
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Optional npm cache directory
+.npm
+
+# IDEs and editors
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Build files
+build/
+coverage/
+*.tgz
+
+# React Native / Expo
+.expo/
+.expo-shared/
+
+# Firebase / ImageKit cache
+firebase-debug.log
+
+# ESLint / Prettier
+.eslintcache
+
+# Local testing
+*.local
+
+# Mac system files
+*.DS_Store
+
+# Windows system files
+ehthumbs.db
+Desktop.ini
+
+# React frontend
+frontend/node_modules/
+frontend/build/
+
+# Backend
+backend/node_modules/
+
+# Others
+*.sqlite
+*.sqlite3
+*.bak
