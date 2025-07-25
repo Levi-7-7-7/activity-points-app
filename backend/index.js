@@ -1,20 +1,14 @@
 // index.js
 
-const tutorRoutes = require('./routes/tutorRoutes');
-
-const categoryRoutes = require('./routes/categoryRoutes');
-
-const certificateRoutes = require('./routes/certificateRoutes');
-
-const tutorRoutes = require('./routes/tutorRoutes');
-
-
-
-
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 require('dotenv').config();
+
+const authRoutes = require('./routes/authRoutes');
+const tutorRoutes = require('./routes/tutorRoutes');
+const categoryRoutes = require('./routes/categoryRoutes');
+const certificateRoutes = require('./routes/certificateRoutes');
 
 const app = express();
 
@@ -22,19 +16,11 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Routes (we'll define these later)
-app.use('/api/auth', require('./routes/authRoutes'));
-
-
-app.use('/api/tutors', tutorRoutes);
-
+// Routes
+app.use('/api/auth', authRoutes);
+app.use('/api/tutors', tutorRoutes); // ✅ keep only this one
 app.use('/api/categories', categoryRoutes);
-
 app.use('/api/certificates', certificateRoutes);
-
-app.use('/api/tutor', tutorRoutes);
-
-
 
 // MongoDB connection
 mongoose
