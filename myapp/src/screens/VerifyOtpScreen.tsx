@@ -1,9 +1,10 @@
+// src/screens/VerifyOtpScreen.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
-const API_BASE_URL = 'https://poly-activity-points.onrender.com/api/auth';
+const API_BASE_URL = 'https://poly-activity-points.onrender.com/api';
 
 const VerifyOtpScreen = () => {
   const [otp, setOtp] = useState('');
@@ -14,11 +15,12 @@ const VerifyOtpScreen = () => {
 
   const handleVerify = async () => {
     try {
-      const res = await axios.post(`${API_BASE_URL}/verify-otp`, {
+      const res = await axios.post(`${API_BASE_URL}/auth/verify-otp`, {
         registerNumber,
         otp,
         password,
       });
+
       Alert.alert('Success', 'Password set successfully. You can now login.', [
         {
           text: 'Go to Login',

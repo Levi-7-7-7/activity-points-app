@@ -9,27 +9,27 @@ const SendOtpScreen = ({ navigation }: any) => {
 
   const handleSendOtp = async () => {
     if (!registerNumber.trim()) {
-      Alert.alert('Error', 'Please enter your register number.');
-      return;
+    Alert.alert('Error', 'Please enter your register number.');
+    return;
     }
 
-    const isTutor = registerNumber.trim().toUpperCase().startsWith('T');
-    const endpoint = isTutor ? `${API_BASE_URL}/tutor/send-otp` : `${API_BASE_URL}/auth/send-otp`;
+    const endpoint = `${API_BASE_URL}/auth/send-otp`; // ✅ Always use this route
 
     try {
-      const res = await axios.post(endpoint, {
-        registerNumber: registerNumber.trim(),
-      });
+    const res = await axios.post(endpoint, {
+      registerNumber: registerNumber.trim(),
+    });
 
       Alert.alert('OTP Sent', 'Please check your college email.');
 
       navigation.navigate('VerifyOtp', { registerNumber: registerNumber.trim() });
 
     } catch (err: any) {
-      console.error(err);
-      Alert.alert('Error', err.response?.data?.message || 'Failed to send OTP');
+    console.error(err);
+    Alert.alert('Error', err.response?.data?.message || 'Failed to send OTP');
     }
   };
+
 
   return (
     <View style={styles.container}>
