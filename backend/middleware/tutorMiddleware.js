@@ -6,7 +6,7 @@ const Tutor = require('../models/Tutor');
 const verifyTutor = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
-  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+  if (!authHeader?.startsWith('Bearer ')) {
     return res.status(401).json({ message: 'Unauthorized: No token provided' });
   }
 
@@ -14,16 +14,22 @@ const verifyTutor = async (req, res, next) => {
 
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const tutor = await Tutor.findById(decoded.id);
+    const tutor = await Tutor.findById(decoded.id).select('-password'); // Exclude password
 
     if (!tutor) {
       return res.status(404).json({ message: 'Tutor not found' });
     }
 
-    req.user = tutor; // store the user in the request
+    req.user = {
+      id: tutor._id,
+      name: tutor.name,
+      email: tutor.email,
+      role: 'tutor'
+    };
+
     next();
   } catch (err) {
-    console.error('JWT error:', err);
+    console.error('JWT verification error:', err);
     return res.status(403).json({ message: 'Invalid token' });
   }
 };

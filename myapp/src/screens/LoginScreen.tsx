@@ -24,8 +24,7 @@ const LoginScreen = ({ navigation }: Props) => {
       return Alert.alert('Error', 'Please enter both register number and password.');
     }
 
-    const isTutor = registerNumber.trim().toUpperCase().startsWith('T');
-    const loginEndpoint = isTutor ? `${API_BASE_URL}/tutor/login` : `${API_BASE_URL}/auth/login`;
+    const loginEndpoint = `${API_BASE_URL}/auth/login`;
 
     try {
       const controller = new AbortController();
