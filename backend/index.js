@@ -1,4 +1,16 @@
 // index.js
+
+const tutorRoutes = require('./routes/tutorRoutes');
+
+const categoryRoutes = require('./routes/categoryRoutes');
+
+const certificateRoutes = require('./routes/certificateRoutes');
+
+const tutorRoutes = require('./routes/tutorRoutes');
+
+
+
+
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -12,6 +24,17 @@ app.use(express.json());
 
 // Routes (we'll define these later)
 app.use('/api/auth', require('./routes/authRoutes'));
+
+
+app.use('/api/tutors', tutorRoutes);
+
+app.use('/api/categories', categoryRoutes);
+
+app.use('/api/certificates', certificateRoutes);
+
+app.use('/api/tutor', tutorRoutes);
+
+
 
 // MongoDB connection
 mongoose

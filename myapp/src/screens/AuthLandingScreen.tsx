@@ -1,9 +1,13 @@
 import React from 'react';
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
+import { AuthStackParamList } from '../types'; // adjust path if needed
+
+type AuthLandingScreenNavigationProp = NativeStackNavigationProp<AuthStackParamList>;
 
 const AuthLandingScreen = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AuthLandingScreenNavigationProp>();
 
   return (
     <View style={styles.container}>

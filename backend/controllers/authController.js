@@ -1,4 +1,5 @@
 const Student = require('../models/Student');
+const Tutor = require('../models/Tutor');
 const jwt = require('jsonwebtoken');
 const nodemailer = require('nodemailer');
 const bcrypt = require('bcrypt');
@@ -16,7 +17,7 @@ const transporter = nodemailer.createTransport({
   }
 });
 
-// 🔹 1. Send OTP to student's college email
+// 🔹 1. Send OTP to user's college email
 exports.sendOtp = async (req, res) => {
   const { registerNumber } = req.body;
 
@@ -24,21 +25,30 @@ exports.sendOtp = async (req, res) => {
     return res.status(400).json({ message: 'Register number is required' });
   }
 
-  const student = await Student.findOne({ registerNumber });
-  if (!student) {
-    return res.status(404).json({ message: 'Student not found' });
+  // Try finding in Student
+  let user = await Student.findOne({ registerNumber });
+  let role = 'student';
+
+  // If not found, check Tutor
+  if (!user) {
+    user = await Tutor.findOne({ registerNumber });
+    role = 'tutor';
+  }
+
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
   }
 
   const otp = generateOTP();
   const expiry = new Date(Date.now() + 10 * 60 * 1000); // valid for 10 mins
 
-  student.otp = otp;
-  student.otpExpiry = expiry;
-  await student.save();
+  user.otp = otp;
+  user.otpExpiry = expiry;
+  await user.save();
 
   const mailOptions = {
     from: process.env.EMAIL_USER,
-    to: student.email,
+    to: user.email,
     subject: 'Your OTP for Activity Points App',
     text: `Your OTP is: ${otp}. It is valid for 10 minutes.`
   };
@@ -59,26 +69,33 @@ exports.verifyOtpAndSetPassword = async (req, res) => {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const student = await Student.findOne({ registerNumber });
-  if (!student) {
-    return res.status(404).json({ message: 'Student not found' });
+  let user = await Student.findOne({ registerNumber });
+  let role = 'student';
+
+  if (!user) {
+    user = await Tutor.findOne({ registerNumber });
+    role = 'tutor';
   }
 
-  if (student.otp !== otp || student.otpExpiry < new Date()) {
+  if (!user) {
+    return res.status(404).json({ message: 'User not found' });
+  }
+
+  if (user.otp !== otp || user.otpExpiry < new Date()) {
     return res.status(400).json({ message: 'Invalid or expired OTP' });
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
 
-  student.password = hashedPassword;
-  student.otp = null;
-  student.otpExpiry = null;
-  await student.save();
+  user.password = hashedPassword;
+  user.otp = null;
+  user.otpExpiry = null;
+  await user.save();
 
   return res.status(200).json({ message: 'Password set successfully. You can now login.' });
 };
 
-// 🔹 3. Login Student
+// 🔹 3. Login (Student or Tutor)
 exports.login = async (req, res) => {
   const { registerNumber, password } = req.body;
 
@@ -86,20 +103,25 @@ exports.login = async (req, res) => {
     return res.status(400).json({ message: 'All fields are required' });
   }
 
-  const student = await Student.findOne({ registerNumber });
+  let user = await Student.findOne({ registerNumber });
+  let role = 'student';
 
-  if (!student || !student.password) {
+  if (!user) {
+    user = await Tutor.findOne({ registerNumber });
+    role = 'tutor';
+  }
+
+  if (!user || !user.password) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  const isMatch = await bcrypt.compare(password, student.password);
+  const isMatch = await bcrypt.compare(password, user.password);
   if (!isMatch) {
     return res.status(401).json({ message: 'Invalid credentials' });
   }
 
-  // ✅ JWT token with no expiry time
   const token = jwt.sign(
-    { id: student._id, registerNumber: student.registerNumber },
+    { id: user._id, registerNumber: user.registerNumber, role },
     process.env.JWT_SECRET
   );
 
@@ -107,23 +129,31 @@ exports.login = async (req, res) => {
     message: 'Login successful',
     token,
     user: {
-      name: student.name,
-      registerNumber: student.registerNumber,
-      email: student.email,
-      role: student.role,
-    },
+      name: user.name,
+      registerNumber: user.registerNumber,
+      email: user.email,
+      role
+    }
   });
 };
 
-
-// 🔹 4. Get logged-in student profile (for token-protected access)
+// 🔹 4. Get profile of the logged-in user
 exports.getProfile = async (req, res) => {
   try {
-    const student = await Student.findById(req.user.id).select('-password');
-    if (!student) {
+    const { role } = req.user;
+    let user;
+
+    if (role === 'tutor') {
+      user = await Tutor.findById(req.user.id).select('-password');
+    } else {
+      user = await Student.findById(req.user.id).select('-password');
+    }
+
+    if (!user) {
       return res.status(404).json({ message: 'User not found' });
     }
-    return res.status(200).json({ user: student });
+
+    return res.status(200).json({ user });
   } catch (err) {
     return res.status(500).json({ message: 'Error fetching user', error: err });
   }

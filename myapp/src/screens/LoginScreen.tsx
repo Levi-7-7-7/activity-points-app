@@ -41,7 +41,7 @@ const LoginScreen = ({ navigation }: Props) => {
       const data = await response.json();
 
       if (response.ok) {
-        await login(data.token);
+        await (data.token);
         await AsyncStorage.setItem('user', JSON.stringify(data.user));
         Alert.alert('Success', `Welcome, ${data.user.name}`);
       } else {

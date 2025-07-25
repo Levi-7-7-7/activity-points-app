@@ -1,4 +1,3 @@
-// src/navigation/AppNavigator.tsx
 import React, { useContext } from 'react';
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -9,12 +8,15 @@ import SendOtpScreen from '../screens/SendOtpScreen';
 import VerifyOtpScreen from '../screens/VerifyOtpScreen';
 import HomeScreen from '../screens/HomeScreen';
 import AuthLandingScreen from '../screens/AuthLandingScreen';
+import TutorPendingScreen from '../screens/TutorPendingScreen';
+import CertificateReviewScreen from '../screens/CertificateReviewScreen';
+
 import { ActivityIndicator, View } from 'react-native';
 
 const Stack = createNativeStackNavigator();
 
 const AppNavigator = () => {
-  const { userToken, loading } = useContext(AuthContext);
+  const { userToken, userInfo, loading } = useContext(AuthContext);
 
   if (loading) {
     return (
@@ -28,7 +30,17 @@ const AppNavigator = () => {
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
         {userToken ? (
-          <Stack.Screen name="Home" component={HomeScreen} />
+          userInfo?.role === 'tutor' ? (
+            <>
+              <Stack.Screen name="TutorPending" component={TutorPendingScreen} />
+              <Stack.Screen name="CertificateReview" component={CertificateReviewScreen} />
+            </>
+          ) : (
+            <>
+              <Stack.Screen name="Home" component={HomeScreen} />
+              {/* Add more student routes here */}
+            </>
+          )
         ) : (
           <>
             <Stack.Screen name="AuthLanding" component={AuthLandingScreen} />
