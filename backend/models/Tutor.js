@@ -1,3 +1,4 @@
+// models/Tutor.js
 const mongoose = require('mongoose');
 
 const tutorSchema = new mongoose.Schema({
@@ -10,9 +11,19 @@ const tutorSchema = new mongoose.Schema({
     required: true,
     unique: true
   },
-  password: {
+  registerNumber: {
     type: String,
-    required: true
+    required: true,
+    unique: true
+  },
+  password: {
+    type: String
+  },
+  otp: {
+    type: String
+  },
+  otpExpiry: {
+    type: Date
   }
 }, {
   timestamps: true
