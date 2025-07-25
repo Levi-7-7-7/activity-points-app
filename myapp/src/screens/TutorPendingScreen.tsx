@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useLayoutEffect } from 'react';
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  StyleSheet
+  StyleSheet,
+  Alert
 } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
@@ -15,7 +16,7 @@ import { useAuth } from '../context/AuthContext';
 
 // ✅ Define the type for navigation route
 type RootStackParamList = {
-  CertificateReview: { certificate: any }; // replace `any` with stricter type if available
+  CertificateReview: { certificate: any }; // you can replace 'any' with Certificate type
 };
 
 type TutorScreenNavigationProp = NativeStackNavigationProp<
@@ -26,8 +27,26 @@ type TutorScreenNavigationProp = NativeStackNavigationProp<
 const TutorPendingScreen = () => {
   const [certificates, setCertificates] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const { userToken } = useAuth();
+  const { userToken, logout, userInfo } = useAuth();
   const navigation = useNavigation<TutorScreenNavigationProp>();
+
+  // 🔐 Add logout button to header
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: true,
+      headerTitle: `Welcome ${userInfo?.name || 'Tutor'}`,
+      headerRight: () => (
+        <TouchableOpacity onPress={() => {
+          Alert.alert('Confirm Logout', 'Are you sure you want to logout?', [
+            { text: 'Cancel' },
+            { text: 'Logout', onPress: logout }
+          ]);
+        }}>
+          <Text style={{ color: 'blue', marginRight: 15, fontSize: 16 }}>Logout</Text>
+        </TouchableOpacity>
+      )
+    });
+  }, [navigation]);
 
   useEffect(() => {
     const fetchCertificates = async () => {
@@ -49,7 +68,9 @@ const TutorPendingScreen = () => {
   const renderItem = ({ item }: { item: any }) => (
     <TouchableOpacity
       style={styles.card}
-      onPress={() => navigation.navigate('CertificateReview', { certificate: item })}
+      onPress={() =>
+        navigation.navigate('CertificateReview', { certificate: item })
+      }
     >
       <Text style={styles.title}>
         {item.student?.name} - {item.category?.name}

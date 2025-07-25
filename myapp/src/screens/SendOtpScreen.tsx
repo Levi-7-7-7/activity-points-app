@@ -1,9 +1,8 @@
-// src/screens/SendOtpScreen.tsx
 import React, { useState } from 'react';
 import { View, Text, TextInput, Button, StyleSheet, Alert } from 'react-native';
 import axios from 'axios';
 
-const API_BASE_URL = 'https://poly-activity-points.onrender.com/api/auth';
+const API_BASE_URL = 'https://poly-activity-points.onrender.com/api';
 
 const SendOtpScreen = ({ navigation }: any) => {
   const [registerNumber, setRegisterNumber] = useState('');
@@ -14,13 +13,16 @@ const SendOtpScreen = ({ navigation }: any) => {
       return;
     }
 
+    const isTutor = registerNumber.trim().toUpperCase().startsWith('T');
+    const endpoint = isTutor ? `${API_BASE_URL}/tutor/send-otp` : `${API_BASE_URL}/auth/send-otp`;
+
     try {
-      const res = await axios.post(`${API_BASE_URL}/send-otp`, {
+      const res = await axios.post(endpoint, {
         registerNumber: registerNumber.trim(),
       });
+
       Alert.alert('OTP Sent', 'Please check your college email.');
 
-      // ✅ Navigate to correct screen
       navigation.navigate('VerifyOtp', { registerNumber: registerNumber.trim() });
 
     } catch (err: any) {

@@ -1,11 +1,17 @@
-// src/context/AuthContext.tsx
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useState, useEffect, useContext } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+
+interface User {
+  name: string;
+  registerNumber?: string;
+  email: string;
+  role: 'student' | 'tutor';
+}
 
 interface AuthContextProps {
   userToken: string | null;
-  userInfo: any | null;
-  login: (token: string) => Promise<void>;
+  userInfo: User | null;
+  login: (token: string, user: User) => Promise<void>;
   logout: () => Promise<void>;
   loading: boolean;
 }
@@ -20,30 +26,24 @@ export const AuthContext = createContext<AuthContextProps>({
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [userToken, setUserToken] = useState<string | null>(null);
-  const [userInfo, setUserInfo] = useState<any | null>(null);
+  const [userInfo, setUserInfo] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   const checkLoginStatus = async () => {
     const token = await AsyncStorage.getItem('token');
+    const userData = await AsyncStorage.getItem('userInfo');
 
-    if (token) {
+    if (token && userData) {
       try {
-        const res = await fetch('https://poly-activity-points.onrender.com/api/auth/me', {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-
-        if (res.ok) {
-          const data = await res.json();
-          setUserToken(token);
-          setUserInfo(data.user); // ✅ set user info from backend
-        } else {
-          await AsyncStorage.removeItem('token');
-          setUserToken(null);
-          setUserInfo(null);
-        }
+        const parsedUser: User = JSON.parse(userData);
+        setUserToken(token);
+        setUserInfo(parsedUser);
       } catch (err) {
-        console.error('Token check failed:', err);
-        setUserToken(token); // fallback
+        console.error('Failed to parse user info:', err);
+        await AsyncStorage.removeItem('userInfo');
+        await AsyncStorage.removeItem('token');
+        setUserToken(null);
+        setUserInfo(null);
       }
     }
 
@@ -54,23 +54,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     checkLoginStatus();
   }, []);
 
-  const login = async (token: string) => {
+  const login = async (token: string, user: User) => {
     await AsyncStorage.setItem('token', token);
+    await AsyncStorage.setItem('userInfo', JSON.stringify(user));
     setUserToken(token);
-
-    try {
-      const res = await fetch('https://poly-activity-points.onrender.com/api/auth/me', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      const data = await res.json();
-      setUserInfo(data.user); // ✅ set user info after login
-    } catch (err) {
-      console.error('Login fetch failed:', err);
-    }
+    setUserInfo(user);
   };
 
   const logout = async () => {
     await AsyncStorage.removeItem('token');
+    await AsyncStorage.removeItem('userInfo');
     setUserToken(null);
     setUserInfo(null);
   };

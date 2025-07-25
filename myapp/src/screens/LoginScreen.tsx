@@ -7,13 +7,12 @@ import {
   StyleSheet,
   Alert,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { AuthContext } from '../context/AuthContext';
 
 type Props = NativeStackScreenProps<any, 'Login'>;
 
-const API_BASE_URL = 'https://poly-activity-points.onrender.com/api/auth';
+const API_BASE_URL = 'https://poly-activity-points.onrender.com/api';
 
 const LoginScreen = ({ navigation }: Props) => {
   const [registerNumber, setRegisterNumber] = useState('');
@@ -25,11 +24,14 @@ const LoginScreen = ({ navigation }: Props) => {
       return Alert.alert('Error', 'Please enter both register number and password.');
     }
 
+    const isTutor = registerNumber.trim().toUpperCase().startsWith('T');
+    const loginEndpoint = isTutor ? `${API_BASE_URL}/tutor/login` : `${API_BASE_URL}/auth/login`;
+
     try {
       const controller = new AbortController();
       const timeout = setTimeout(() => controller.abort(), 10000); // 10 seconds
 
-      const response = await fetch(`${API_BASE_URL}/login`, {
+      const response = await fetch(loginEndpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ registerNumber, password }),
@@ -41,8 +43,7 @@ const LoginScreen = ({ navigation }: Props) => {
       const data = await response.json();
 
       if (response.ok) {
-        await (data.token);
-        await AsyncStorage.setItem('user', JSON.stringify(data.user));
+        await login(data.token, data.user);
         Alert.alert('Success', `Welcome, ${data.user.name}`);
       } else {
         Alert.alert('Error', data.message || 'Login failed');
@@ -60,7 +61,7 @@ const LoginScreen = ({ navigation }: Props) => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Student Login</Text>
+      <Text style={styles.title}>Login</Text>
 
       <TextInput
         style={styles.input}
